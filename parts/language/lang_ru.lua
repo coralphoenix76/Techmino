@@ -485,8 +485,8 @@ C. Контроллер
             description="Описание комнаты",
 
             life="Жизни",
-            pushSpeed="Push Speed",
-            garbageSpeed="Garbage Line Speed",
+            pushSpeed="Скорость подъёма мусора",
+            garbageSpeed="Скорость удаления линий мусора",
             visible="Visibility",
             freshLimit="Lock Reset Limit",
 
