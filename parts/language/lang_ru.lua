@@ -490,9 +490,9 @@ C. Контроллер
             visible="Visibility",
             freshLimit="Lock Reset Limit",
 
-            fieldH="Field Height",
+            fieldH="Высота доски",
             bufferLimit="Buffer Limit",
-            heightLimit="Height Limit",
+            heightLimit="Лимит высоты",
 
             drop="Drop Delay",
             lock="Lock Delay",
