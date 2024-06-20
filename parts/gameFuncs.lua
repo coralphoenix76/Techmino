@@ -115,7 +115,7 @@ do-- function applySettings()
         light={.2,.8},
         color={-.2,1.2},
     }
-    function applySettings()
+    function applySettings(reason)
         -- Apply language
         text=LANG.get(SETTING.locale)
         WIDGET.setLang(text.WidgetText)
@@ -157,9 +157,16 @@ do-- function applySettings()
         SHADER.fieldSatur:send('k',m[2])
 
         -- Apply BG
+        if reason=='fullscreen' then return end
         if SETTING.bg=='on' then
             BG.unlock()
+            BG.setDefault(SETTING.defaultBG)
             BG.set()
+            if SETTING.lockBG then
+                BG.lock()
+            elseif reason=='lockBG' then        -- Don't load theme too soon!
+                THEME.set(THEME.calculate(),GAME.playing)
+            end
         elseif SETTING.bg=='off' then
             BG.unlock()
             BG.set('fixColor',SETTING.bgAlpha,SETTING.bgAlpha,SETTING.bgAlpha)
@@ -192,7 +199,7 @@ local function getSmallNum(num)
     local str=tostring(num)
     local out=""
     for i=1,#str do
-        out=out..smallDigits[tonumber(string.sub(str,i,i))]
+        out=out..smallDigits[tonumber(str:sub(i,i))]
     end
     return out
 end
@@ -1227,7 +1234,7 @@ do-- function pressKey(k)
         return cache[k]
     end
 end
-do-- SETXXX(k)
+do-- SETXXX(k) & ROOMXXX(k)
     local warnList={
         'das','arr','dascut','dropcut','sddas','sdarr',
         'ihs','irs','ims','RS',

@@ -99,6 +99,7 @@ function DATA.pasteBoard(str)-- Paste [str] data to [page] board
 
     local fX,fY=1,1-- *ptr for Field(r*10+(c-1))
     local p=1
+    local lineLimit=126
     while true do
         local b=byte(str,p)-- 1byte
 
@@ -120,13 +121,13 @@ function DATA.pasteBoard(str)-- Paste [str] data to [page] board
             fX=fX+1
         else
             fY=fY+1
-            if fY>60 then break end
+            if fY>lineLimit then break end
             fX=1
         end
         p=p+1
     end
 
-    return true, F
+    return true,F,#str>lineLimit*10
 end
 
 --[[
@@ -212,10 +213,14 @@ end
 function DATA.pasteQuestArgs(str)
     if #str<4 then return end
     local ENV={}
-    ENV.holdCount=  str:byte(1)-48
+    ENV.holdCount=  MATH.clamp(str:byte(1)-48,0,26)
     ENV.ospin=      str:byte(2)~=90
     ENV.missionKill=str:byte(3)~=90
     ENV.sequence=   str:sub(4)
+    if select(2,require"parts.player.seqGenerators"(ENV.sequence)) then
+        MES.new('warn',text.invalidSequence)
+        ENV.sequence='bag'
+    end
     return true,ENV
 end
 

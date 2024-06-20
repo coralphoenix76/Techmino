@@ -94,6 +94,8 @@ return {
     dataCorrupted="Error.DataCorrupted();",
     pasteWrongPlace="Error.PasteWrongPlace();",
     noFile="Error.NoFile();",
+    invalidSequence="Error.InvalidSequenceMode();",
+    tooHighField="Error.TooHighField();",
 
     nowPlaying="NowPlaying=",
 
@@ -496,6 +498,10 @@ return {
             bg_on="Set.BG(Normal);",
             bg_off="Set.BG(Off);",
             bg_custom="Set.BG(Ctm);",
+            -- defaultBG="Default B.G.",
+            -- resetDbg="Reset to default",
+            -- lockBG="Lock B.G.",
+            -- noTheme="Disable theme",
 
             blockSatur="Set.BlockSatur",
             fieldSatur="Set.FieldSatur",
@@ -849,7 +855,7 @@ return {
         ['defender_l']=         {"Defender(Lunatic);",      "",      "防守练习"},
         ['dig_h']=              {"Dig(Hard);",              "",      "挖掘练习"},
         ['dig_u']=              {"Dig(Ultimate);",          "",      "挖掘练习"},
-        ['c4wtrain_n']=         {"C4WTrain(Normal);",       "",      "无 限 连 击"},
+        ['c4wtrain_n']=         {"C4WTrain(Normal);",       "",      "消除100行"},
         ['c4wtrain_l']=         {"C4WTrain(Lunatic);",      "",      "无 限 连 击"},
         ['pctrain_n']=          {"PCTrain(Normal);",        "",      "简易PC题库，熟悉全清定式的组合"},
         ['pctrain_l']=          {"PCTrain(Lunatic);",       "",      "困难PC题库，强算力者进"},
@@ -865,8 +871,6 @@ return {
         ['tech_l_plus']=        {"Tech(LunaticP);",         "",      "仅允许spin与PC"},
         ['tech_finesse']=       {"Tech(Finesse);",          "",      "强制最简操作"},
         ['tech_finesse_f']=     {"Tech(FinesseF);",         "",      "禁止普通消除，强制最简操作"},
-        ['tech_finesse_lock']=  {"Tech(FineeseLock);",      "",    "限制操作次数"},
-        ['tech_finesse_lock_f']={"Tech(FineeseLockF);",     "",   "限制操作次数，禁止断B2B"},
         ['tsd_e']=              {"TSD(Easy);",              "",      "你能连续做几个TSD？"},
         ['tsd_h']=              {"TSD(Hard);",              "",      "你能连续做几个TSD？"},
         ['tsd_u']=              {"TSD(Ultimate);",          "",      "你能连续做几个TSD？"},

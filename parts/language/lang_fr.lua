@@ -95,6 +95,8 @@ return {
     dataCorrupted="Données corrompues",
     -- pasteWrongPlace="Paste at wrong place?",
     noFile="Fichier non trouvé",
+    -- invalidSequence="Invalid sequence mode",
+    -- tooHighField="Field data exceeded 126 lines discarded",
 
     nowPlaying="En train de jouer :",
 
@@ -523,6 +525,10 @@ return {
             bg_on="Arrière-plan normal",
             bg_off="Pas d'arrière-plan.",
             bg_custom="Utiliser un arrière-plan personnalisé",
+            -- defaultBG="Default B.G.",
+            -- resetDbg="Reset to default",
+            -- lockBG="Lock B.G.",
+            -- noTheme="Disable theme",
 
             -- blockSatur="Block Saturation",
             -- fieldSatur="Field Saturation",
@@ -877,7 +883,7 @@ return {
         ['defender_l']=    {"Défendant",       "LUNATIQUE",   "Soyez défensifs !"},
         ['dig_h']=         {"Perceuse",        "DIFFICILE",   "Essayez de creuser !"},
         ['dig_u']=         {"Perceuse",        "ULTIME",      "Essayez de creuser !"},
-        ['c4wtrain_n']=    {"Mode essai C4W",  "NORMAL",      "Combos infinis."},
+        ['c4wtrain_n']=    {"Mode essai C4W",  "NORMAL",      "Nettoyez 100 lignes !"},
         ['c4wtrain_l']=    {"Mode essai C4W",  "LUNATIQUE",   "Combos infinis."},
         ['pctrain_n']=     {"Mode essai PC",   "NORMAL",      "Mode Perfect Clear simple"},
         ['pctrain_l']=     {"Mode essai PC",   "LUNATIQUE",   "Mode Perfect Clear dur"},
@@ -895,8 +901,6 @@ return {
         -- ['tech_finesse_f']=      {"Tech Finesse",      "PLUS",           "No normal clears and finesse errors!"},
         ['tech_finesse']=  {"Tech",           "FINESSE",     "Pas d'erreurs de finesse !"},
         ['tech_finesse_f']={"Tech",           "FINESSE+",    "Pas de nettoyages normaux,\nPas d'erreurs de finesse !"},
-        --['tech_finesse_lock']=   {"Tech",              "FINESSE LOCK",   "No finesse errors, combined with limited inputs!"},
-        --['tech_finesse_lock_f']= {"Tech",              "FINESSE+ LOCK",  "No normal clears or finesse errors combined with limited inputs!"},
         ['tsd_e']=         {"TSD Challenge",  "FACILE",      "T-spin doubles uniquement !"},
         ['tsd_h']=         {"TSD Challenge",  "DIFFICILE",   "T-spin doubles uniquement !"},
         ['tsd_u']=         {"TSD Challenge",  "ULTIME",      "T-spin doubles uniquement !"},

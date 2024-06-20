@@ -151,6 +151,7 @@ local function _newEmptyPlayer(id,mini)
     P.nextQueue={}
     P.holdQueue={}
     P.holdTime=0
+    P.holdIXSFromNext=nil
     P.lastPiece={
         id=0,name=0,-- block id/name
 
@@ -430,7 +431,7 @@ function PLY.newDemoPlayer(id)
         delay=6,
         node=100000,
     }
-    P:popNext()
+    P:spawn()
 end
 function PLY.newRemotePlayer(id,mini,p)
     local P=_newEmptyPlayer(id,mini)

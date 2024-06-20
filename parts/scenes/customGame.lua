@@ -14,10 +14,14 @@ local function CUSval(k) return CUSTOMGAME_LOCAL:CUSval(k) end
 local function CUSrev(k) return CUSTOMGAME_LOCAL:CUSrev(k) end
 local function CUSsto(k) return CUSTOMGAME_LOCAL:CUSsto(k) end
 local function apply_locals()
-    FIELD=CUSTOMGAME_LOCAL.field
-    BAG=CUSTOMGAME_LOCAL.bag
-    MISSION=CUSTOMGAME_LOCAL.mission
-    CUSTOMENV=CUSTOMGAME_LOCAL.customenv
+    TABLE.clear(FIELD)
+    TABLE.cover(CUSTOMGAME_LOCAL.field,FIELD)
+    TABLE.clear(BAG)
+    TABLE.cover(CUSTOMGAME_LOCAL.bag,BAG)
+    TABLE.clear(MISSION)
+    TABLE.cover(CUSTOMGAME_LOCAL.mission,MISSION)
+    TABLE.clear(CUSTOMENV)
+    TABLE.cover(CUSTOMGAME_LOCAL.customenv,CUSTOMENV)
 end
 do -- Initialize fields, sequence, missions, gameEnv for cutsom game
     local fieldData=loadFile('conf/customBoards','-string -canSkip')
@@ -36,20 +40,23 @@ do -- Initialize fields, sequence, missions, gameEnv for cutsom game
         end
     end
     if fieldReinit then
-        CUSTOMGAME_LOCAL.field={DATA.newBoard()}
+        TABLE.cut(CUSTOMGAME_LOCAL.field)
+        CUSTOMGAME_LOCAL.field[1]=DATA.newBoard()
     end
     local sequenceData=loadFile('conf/customSequence','-string -canSkip')
     if sequenceData then
         local success,bag=DATA.pasteSequence(sequenceData)
         if success then
-            CUSTOMGAME_LOCAL.bag=bag
+            TABLE.cut(CUSTOMGAME_LOCAL.bag)
+            TABLE.cover(bag,CUSTOMGAME_LOCAL.bag)
         end
     end
     local missionData=loadFile('conf/customMissions','-string -canSkip')
     if missionData then
         local success,mission=DATA.pasteMission(missionData)
         if success then
-            CUSTOMGAME_LOCAL.mission=mission
+            TABLE.cut(CUSTOMGAME_LOCAL.mission)
+            TABLE.cover(mission,CUSTOMGAME_LOCAL.mission)
         end
     end
     local customData=loadFile('conf/customEnv','-canSkip')
@@ -76,7 +83,7 @@ local sList={
     hang={0,1,2,3,4,5,6,7,8,9,10,15,20,30,60},
     hurry={0,1,2,3,4,5,6,7,8,9,10,1e99},
     eventSet=EVENTSETS,
-    holdMode={'hold','swap'},
+    holdMode={'hold','swap','skip'},
 }
 local modUsed
 
@@ -184,6 +191,7 @@ function scene.keyDown(key,isRep)
     elseif key=='v' and kb.isDown('lctrl','rctrl') or key=='cV' then
         local str=sys.getClipboardText()
         local args=str:sub((str:find(":") or 0)+1):split("!")
+        local hasTooHighField=false
         repeat
             if #args<4 then break end-- goto THROW_fail
             local success,env=DATA.pasteQuestArgs(args[1])
@@ -192,23 +200,31 @@ function scene.keyDown(key,isRep)
 
             local success,bag=DATA.pasteSequence(args[2])
             if not success then break end-- goto THROW_fail
-            CUSTOMGAME_LOCAL.bag=bag
+            TABLE.cut(CUSTOMGAME_LOCAL.bag)
+            TABLE.cover(bag,CUSTOMGAME_LOCAL.bag)
 
             local success,mission=DATA.pasteMission(args[3])
             if not success then break end-- goto THROW_fail
-            CUSTOMGAME_LOCAL.mission=mission
+            TABLE.cut(CUSTOMGAME_LOCAL.mission)
+            TABLE.cover(mission,CUSTOMGAME_LOCAL.mission)
 
             TABLE.cut(CUSTOMGAME_LOCAL.field)
             CUSTOMGAME_LOCAL.field[1]=DATA.newBoard()
             for i=4,#args do
                 if args[i]:find("%S") then
-                    local success,F=DATA.pasteBoard(args[i])
+                    local success,F,hitHeightLimit=DATA.pasteBoard(args[i])
                     if success then
+                        if hitHeightLimit then
+                            hasTooHighField=true
+                        end
                         CUSTOMGAME_LOCAL.field[i-3]=F
                     else
                         if i<#args then break end-- goto THROW_fail
                     end
                 end
+            end
+            if hasTooHighField then
+                MES.new('warn',text.tooHighField)
             end
             MES.new('check',text.importSuccess)
             return
@@ -334,7 +350,7 @@ scene.widgetList={
     WIDGET.newSwitch{name='phyHold',       x=560, y=1030,lim=200,                   disp=CUSval('phyHold'),code=CUSrev('phyHold'),hideF=function() return CUSTOMGAME_LOCAL.customenv.holdCount==0 end},
 
     -- BG & BGM
-    WIDGET.newSelector{name='bg',          x=840, y=1100,w=250,color='Y',list=BG.getList(),disp=CUSval('bg'),code=function(i) CUSTOMGAME_LOCAL.customenv.bg=i BG.set(i) end},
+    WIDGET.newSelector{name='bg',          x=840, y=1100,w=250,color='Y',list=BG.getList(),disp=CUSval('bg'),code=function(i) CUSTOMGAME_LOCAL.customenv.bg=i BG.set(i) end,hideF=SETval('lockBG')},
     WIDGET.newSelector{name='bgm',         x=1120,y=1100,w=250,color='Y',list=BGM.getList(),disp=CUSval('bgm'),code=function(i) CUSTOMGAME_LOCAL.customenv.bgm=i BGM.play(i) end},
 }
 

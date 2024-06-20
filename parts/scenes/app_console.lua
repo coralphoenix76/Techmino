@@ -377,6 +377,15 @@ local commands={} do
             "Usage: openurl [url]",
         },
     }
+    commands.viewlog={
+        code=goScene('viewlog'),
+        description="View crash logs",
+        details={
+            "Open the crash logs menu",
+            "",
+            "Usage: viewlog"
+        }
+    }
     commands.scrinfo={
         code=function()
             for _,v in next,SCR.info() do
@@ -478,7 +487,9 @@ local commands={} do
     commands.setbg={
         code=function(name)
             if name~="" then
-                if name~=BG.cur then
+                if SETTING.lockBG then
+                    log{"Background is currently ",C.R,"locked",C.Z,"! You can unlock it in Video settings."}
+                elseif name~=BG.cur then
                     if BG.set(name) then
                         log(("Background set to '%s'"):format(name))
                     else
@@ -501,10 +512,14 @@ local commands={} do
     commands.theme={
         code=function(name)
             if name~="" then
-                if THEME.set(name) then
-                    log("Theme set to: "..name)
+                if SETTING.noTheme then
+                    log{"Themes are currently ",C.R,"disabled",C.Z,"! You can re-enable it in Video settings."}
                 else
-                    log("No theme called "..name)
+                    if THEME.set(name) then
+                        log("Theme set to: "..name)
+                    else
+                        log("No theme called "..name)
+                    end
                 end
             else
                 log{C.A,"Usage: theme <xmas|halloween|sprfes|zday1/2/3|season1/2/3/4|fool|birth>"}

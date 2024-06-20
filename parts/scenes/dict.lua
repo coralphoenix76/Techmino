@@ -17,7 +17,7 @@ local lastSearch            -- Last searched string
 local lastSelected          -- Last selected item
 
 local currentFontSize=25    -- Current font size, default: 25
-local needLowerUTF8
+local utf8postProcess
 
 local typeColor={
     help=COLOR.Y,
@@ -44,9 +44,11 @@ local function _scanDict(D)
     for i=1,#D do
         local O=D[i]
         O.title,O.title_Org=_filter(O[1])
-        O.titleLowered=needLowerUTF8 and STRING.lowerUTF8(O.title) or O.title:lower()
+        O.titleLowered=utf8postProcess and STRING.lowerUTF8(O.title) or O.title:lower()
+        O.titleNoDiaratics=utf8postProcess and STRING.remDiacritics(O.titleLowered)
         O.keywords=O[2]
-        O.keywordsLowered=needLowerUTF8 and STRING.lowerUTF8(O.keywords) or O.keywords:lower()
+        O.keywordsLowered=utf8postProcess and STRING.lowerUTF8(O.keywords) or O.keywords:lower()
+        O.keywordsNoDiaratics=utf8postProcess and STRING.remDiacritics(O.keywordsLowered)
         O.type=O[3]
         O.content,O.content_Org=_filter(O[4])
         O.url=O[5]
@@ -55,8 +57,8 @@ local function _scanDict(D)
 end
 local function _getList() return result[1] and result or dict end
 
-local textBox=WIDGET.newTextBox{name='infoBox',x=320,y=180,w=862,h=526,font=25,fix=true}
-local inputBox=WIDGET.newInputBox{name='input',x=20,y=110,w=762,h=60,font=40,limit=32}
+local contentBox=WIDGET.newTextBox{name='contentBox',x=320,y=180,w=862,h=526,font=25,fix=true}
+local inputBox=WIDGET.newInputBox{name='inputBox',x=20,y=110,w=762,h=60,font=40,limit=32}
 local listBox=WIDGET.newListBox{name='listBox',x=20,y=180,w=280,h=526,font=30,lineH=35,drawF=function(item,id,ifSel)
     -- Background
     if ifSel then
@@ -70,38 +72,19 @@ end}
 
 -- Necessary local functions
 -- Update the infobox
-local function _updateInfoBox(c)
+local function _updateContentBox()
     local _t,t
-    if c==nil then
-        if listBox.selected==0 then
-            if text.dict.helpText then
-                _t,t=true,text.dict.helpText:repD(
-                    CHAR.key.up,CHAR.key.down,CHAR.key.left,CHAR.key.right,
-                    CHAR.controller.dpadU,CHAR.controller.dpadD,CHAR.controller.dpadL,CHAR.controller.dpadR,
-                    CHAR.controller.xboxX,CHAR.controller.xboxY,CHAR.controller.xboxA,CHAR.controller.xboxB,
-                    CHAR.icon.help,CHAR.icon.copy,CHAR.icon.globe,CHAR.key.winMenu
-                )
-            else -- Fallback
-                listBox.selected=lastSelected
-                scene.widgetList.help.color=COLOR.Z
-                MES.new("error","Cannot found the Help text! Maybe just a mistake?")
-                return
-            end
-        else
-            _t,t=pcall(function() return _getList()[listBox.selected].content end)
-        end
-        if _t then c=t else c={""} end
-        _t,t=nil,nil
-    end
-    local _w,c=FONT.get(currentFontSize):getWrap(c,840)
-    textBox:setTexts(c)
+    _t,t=pcall(function() return _getList()[listBox.selected].content end)
+    if not _t then t={"???"} end
+    local _w,c=getFont(currentFontSize):getWrap(t,840)
+    contentBox:setTexts(c)
 end
 -- Clear the result
 local function _clearResult()
     TABLE.cut(result)
     listBox.selected,lastSelected,searchWait,lastSearch=1,1,0,false
     scene.widgetList.copy.hide=false
-    _updateInfoBox()
+    _updateContentBox()
 end
 -- Search through the dictionary
 local function _search()
@@ -109,9 +92,9 @@ local function _search()
     local pos
     local first
     _clearResult()
-    input=needLowerUTF8 and STRING.lowerUTF8(input) or input:lower()
+    input=utf8postProcess and STRING.lowerUTF8(input) or input:lower()
     for i=1,#dict do
-        pos=find(dict[i].titleLowered,input,nil,true) or find(STRING.lowerUTF8(dict[i].keywordsLowered),input,nil,true)
+        pos=find(dict[i].titleLowered,input,nil,true) or find(dict[i].keywordsLowered,input,nil,true) or utf8postProcess and (find(dict[i].titleNoDiaratics,input,nil,true) or find(dict[i].keywordsNoDiaratics,input,nil,true))
         if pos==1 and not first then
             ins(result,1,dict[i])
             first=true
@@ -124,7 +107,7 @@ local function _search()
 
     if #result>0 then SFX.play('reach') end
     lastSearch=input
-    _updateInfoBox()
+    _updateContentBox()
 end
 
 -- Jump over n items
@@ -132,7 +115,7 @@ local function _jumpover(key,n)
     local dir=(key=='left' or key=='pageup') and 'up' or 'down'
     for _=1,n or 1 do scene.widgetList.listBox:arrowKey(dir) end
 
-    _updateInfoBox()
+    _updateContentBox()
     lastSelected=listBox.selected
     scene.widgetList.copy.hide=false
 end
@@ -149,10 +132,9 @@ end
 -- Changing font size, z=0 --> reset
 local function _setZoom(z)
     currentFontSize=MATH.clamp(z~=0 and currentFontSize+z or 25,15,40)
-    textBox.font=currentFontSize
-    textBox.lineH=currentFontSize*7/5 -- Recalculate the line's height
-    textBox.capacity=math.ceil((textBox.h-10)/textBox.lineH)
-    _updateInfoBox()
+    contentBox.font=currentFontSize
+    contentBox:reset()
+    _updateContentBox()
     MES.new("check",z~=0 and text.dict.sizeChanged:repD(currentFontSize) or text.dict.sizeReset,1.26)
 end
 
@@ -164,8 +146,8 @@ function scene.enter()
         SETTING.locale:find'vi' and 'vi' or
         'en'
     )
-    needLowerUTF8=SETTING.locale:find'vi'
-    
+    utf8postProcess=SETTING.locale:find'vi'
+
     dict=require(localeFile)
     _scanDict(dict)
 
@@ -173,10 +155,11 @@ function scene.enter()
     result={}
 
     searchWait=0
-    lastSelected=0
+    lastSelected=1
     lastSearch=false
     listBox:setList(_getList())
-    scene.widgetList.help.color=COLOR.Z
+
+    _updateContentBox()
 
     if not MOBILE then WIDGET.focus(inputBox) end
     BG.set('rainbow')
@@ -186,7 +169,7 @@ function scene.wheelMoved(_,y)
     if WIDGET.sel==listBox then
         listBox:scroll(-y)
     else
-        textBox:scroll(-y)
+        contentBox:scroll(-y)
     end
 end
 function scene.keyDown(key)
@@ -194,7 +177,7 @@ function scene.keyDown(key)
 
     -- Switching selected items
     if key=='up' or key=='down' then
-        textBox:scroll(key=='up' and -1 or 1)
+        contentBox:scroll(key=='up' and -1 or 1)
     elseif (key=='left' or key=='pageup' or key=='right' or key=='pagedown') then
         _jumpover(key,love.keyboard.isDown('lctrl','rctrl','lalt','ralt','lshift','rshift') and 12)
     elseif key=='cC' or key=='c' and love.keyboard.isDown('lctrl','rctrl') then
@@ -212,7 +195,7 @@ function scene.keyDown(key)
             _clearResult()
             inputBox:clear()
             SFX.play('hold')
-            _updateInfoBox()
+            _updateContentBox()
         end
     elseif key=='escape' then
         if inputBox:hasText() then
@@ -221,12 +204,16 @@ function scene.keyDown(key)
             SCN.back()
         end
     elseif key=='f1' then
-        -- inputBox:clear()
-        -- _clearResult()
-        listBox.selected=listBox.selected==0 and lastSelected or 0
-        scene.widgetList.help.color=listBox.selected==0 and COLOR.W or COLOR.Z
-        searchWait=0
-        _updateInfoBox()
+        SCN.go(
+            'textReader',nil,
+            text.dict.helpText:repD(
+                CHAR.key.up,CHAR.key.down,CHAR.key.left,CHAR.key.right,
+                CHAR.controller.dpadU,CHAR.controller.dpadD,CHAR.controller.dpadL,CHAR.controller.dpadR,
+                CHAR.controller.xboxX,CHAR.controller.xboxY,CHAR.controller.xboxA,CHAR.controller.xboxB,
+                CHAR.icon.help,CHAR.icon.copy,CHAR.icon.globe,CHAR.key.winMenu),
+            20,
+            'rainbow'
+        )
 
     -- ***ONLY USE FOR HOTLOADING ZICTIONARY WHILE IN GAME!***
     -- ***Please commenting out this code if you don't use***
@@ -240,17 +227,20 @@ function scene.keyDown(key)
     --     )
     --     if not success then
     --         SFX.play('finesseError_long')
-    --         _,_r=FONT.get(30):getWrap(tostring(_r),1000)
+    --         _,_r=getFont(30):getWrap(tostring(_r),1000)
     --         MES.new("error","Hotload failed! May need restarting!\n\n"..table.concat(_r,"\n"))
     --     else
     --         local lastLscrollPos=listBox.scrollPos
-    --         local lastTscrollPos=textBox.scrollPos
+    --         local lastTscrollPos=contentBox.scrollPos
+
     --         listBox:setList(_getList())
     --         if #inputBox:getText()>0 then _search() end
+
     --         listBox.selected=lastSelected<#dict and lastSelected or #dict   -- In case the last item is removed!
     --         listBox.scrollPos=lastLscrollPos
-    --         _updateInfoBox()
-    --         textBox.scrollPos=lastTscrollPos
+
+    --         _updateContentBox()
+    --         contentBox.scrollPos=lastTscrollPos
     --         SFX.play('pc')
     --     end
     else
@@ -266,7 +256,7 @@ function scene.gamepadDown(key)
         if Joystick:isGamepadDown('a') then
             _setZoom(key=='dpup' and 5 or -5)
         else
-            textBox:scroll(key=='dpup' and -3 or 3)
+            contentBox:scroll(key=='dpup' and -3 or 3)
         end
     elseif key=='dpleft' or key=='dpright' then
         _jumpover(key:gsub('dp',''),Joystick:isGamepadDown('a') and 12)
@@ -294,25 +284,21 @@ function scene.update(dt)
             _search()
         end
     end
-    if listBox.selected~=lastSelected and listBox.selected~=0 then
-        scene.widgetList.help.color=COLOR.Z
+    if listBox.selected~=lastSelected then
         lastSelected=listBox.selected
-        scene.widgetList.copy.hide=false
-        _updateInfoBox()
+        _updateContentBox()
     end
 end
 
 function scene.draw()
     -- Draw background
     gc.setColor(COLOR.dX)
-    gc.rectangle('fill',1194,335,80,370,5)
-    gc.rectangle('fill',1194,180,80,80,5) -- Help key
+    gc.rectangle('fill',1194,260,80,370,5)
     -- Draw outline
     gc.setLineWidth(2)
     gc.setColor(COLOR.Z)
-    gc.rectangle('line',1194,335,80,370,5)
-    gc.line(1194,555,1274,555)
-    gc.rectangle('line',1194,180,80,80,5) -- Help key
+    gc.rectangle('line',1194,260,80,370)
+    gc.line(1194,480,1274,480)
 
     if searchWait>0 then
         local r=TIME()*2
@@ -327,18 +313,16 @@ scene.widgetList={
     WIDGET.newText{name='title',x=100,y=15,font=70,align='L'},
     listBox,
     inputBox,
-    textBox,
-    WIDGET.newKey{name='link',x=1234,y=595,w=60,font=45,fText=CHAR.icon.globe,code=pressKey'application',hideF=function() return not (listBox.selected>0 and _getList()[listBox.selected].url) end},
-    WIDGET.newKey{name='copy',x=1234,y=665,w=60,font=40,fText=CHAR.icon.copy,code=pressKey'cC',hideF=function() return not (listBox.selected>0) end},
+    contentBox,
+    WIDGET.newKey{name='link',x=1234,y=520,w=60,font=45,fText=CHAR.icon.globe,code=pressKey'application',hideF=function() return not (listBox.selected>0 and _getList()[listBox.selected].url) end},
+    WIDGET.newKey{name='copy',x=1234,y=590,w=60,font=40,fText=CHAR.icon.copy,code=pressKey'cC',hideF=function() return not (listBox.selected>0) end},
 
-    WIDGET.newKey{name='zoomin',x=1234,y=375,w=60,font=40,fText=CHAR.icon.zoomIn,code=function() _setZoom(5) end},
-    WIDGET.newKey{name='zoomout',x=1234,y=445,w=60,font=40,fText=CHAR.icon.zoomOut,code=function() _setZoom(-5) end},
-    WIDGET.newKey{name='resetzoom',x=1234,y=515,w=60,font=40,fText=CHAR.icon.zoomDefault,code=function() _setZoom(0) end},
-
-    WIDGET.newKey{name='help',x=1234,y=220,w=60,font=40,fText=CHAR.icon.help,code=pressKey'f1'},
+    WIDGET.newKey{name='fontup',x=1234,y=300,w=60,font=40,fText=CHAR.icon.fontUp,code=function() _setZoom(5) end},
+    WIDGET.newKey{name='fontdown',x=1234,y=370,w=60,font=40,fText=CHAR.icon.fontDown,code=function() _setZoom(-5) end},
+    WIDGET.newKey{name='resetzoom',x=1234,y=440,w=60,font=40,fText=CHAR.icon.zoomDefault,code=function() _setZoom(0) end},
 
     WIDGET.newButton{name='back',x=1185,y=60,w=170,h=80,sound='back',font=60,fText=CHAR.icon.back,code=backScene},
-    WIDGET.newText{name='buttontip',x=1274,y=110,w=762,h=60,font=40,align='R',fText=CHAR.controller.xboxY.."/[F1]: "..CHAR.icon.help,hideF=function() return MOBILE end},
+    WIDGET.newKey{name='help',x=1170,y=140,w=200,h=60,font=40,fText=CHAR.controller.xboxY.."/[F1]: "..CHAR.icon.help,code=pressKey'f1'},
 }
--- NOTE: The gap between Link-Copy, Zoom is 60*1.5-10=80 :) The gap between 2 buttons in one group is 60+10=70
+-- NOTE: The gap between Link-Copy, Zoom is 60*1.5-10=80; the gap between 2 buttons in one group is 60+10=70
 return scene

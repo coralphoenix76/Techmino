@@ -23,7 +23,7 @@ TIME=love.timer.getTime
 
 -- Global Vars & Settings
 SFXPACKS={'chiptune'}
-VOCPACKS={'miya','mono','xiaoya','flore','miku','zundamon'}
+VOCPACKS={'miya','mono','xiaoya','flore','neuro','miku','zundamon'}
 FIRSTLAUNCH=false
 DAILYLAUNCH=false
 
@@ -50,14 +50,11 @@ BGM.setMaxSources(5)
 VOC.setDiversion(.62)
 
 WIDGET.setOnChange(function()
-    if SCN.cur~='net_game' and SCN.cur~='custom_field' then
-        local colorList=THEME.getThemeColor()
-        if colorList then
-            for _,W in next,SCN.scenes[SCN.cur].widgetList do
-                if W.color then
-                    W.color=colorList[math.random(#colorList)]
-                end
-            end
+    if SCN.cur=='net_game' or SCN.cur=='custom_field' then return end
+    local colorList=THEME.getThemeColor()
+    if colorList then
+        for _,W in next,SCN.scenes[SCN.cur].widgetList do
+            W.color=W.color and colorList[math.random(#colorList)]
         end
     end
 end)
@@ -191,7 +188,7 @@ Z.setOnFnKeys({
 Z.setOnGlobalKey('f11',function()
     if not MOBILE then
         SETTING.fullscreen=not SETTING.fullscreen
-        applySettings()
+        applySettings('fullscreen')
         saveSettings()
     end
 end)
@@ -274,6 +271,7 @@ IMG.init{
     floreCH='media/image/characters/flore.png',
     mikuCH='media/image/characters/miku.png',
     zundamonCH='media/image/characters/zundamon.png',
+    neuroCH='media/image/characters/neuro.png',
     z={
         character='media/image/characters/z_character.png',
         screen1='media/image/characters/z_screen1.png',

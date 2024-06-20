@@ -31,17 +31,17 @@ return {
         end,
     },
     score=function(P) return {P.stat.dig_quad,P.stat.time} end,
-    scoreDisp=function(D) return D[1].." Techrash "..STRING.time(D[2]) end,
+    scoreDisp=function(D) return D[1].." Lines "..STRING.time(D[2]) end,
     comp=function(a,b) return a[1]>b[1] or a[1]==b[1] and a[2]<b[2] end,
     getRank=function(P)
         local dig=P.stat.dig_quad
-        if dig<=1 then return end
-        return
+        return MATH.clamp((
             dig==10 and 5 or
             dig>=7 and 4 or
             dig>=5 and 3 or
             dig>=3 and 2 or
             dig>=2 and 1 or
             0
+        )-math.floor((P.stat.clears[4]-P.stat.dig_quad)^.62),0,5)
     end,
 }

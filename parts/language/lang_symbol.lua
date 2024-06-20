@@ -84,6 +84,8 @@ return {
     dataCorrupted="XXXXX",
     pasteWrongPlace="_?X.",
     -- noFile="File not found",
+    -- invalidSequence="Invalid sequence mode",
+    -- tooHighField="Field data exceeded 126 lines discarded",
 
     nowPlaying="~:",
 
@@ -295,6 +297,10 @@ return {
             bg_on="__?__",
             bg_off="__.__",
             bg_custom="__!__",
+            defaultBG="__$0__",
+            resetDbg="R$0",
+            lockBG="__↓__",
+            noTheme="\\^_^/ "..CHAR.icon.crossMark,
 
             blockSatur="==#0x",
             fieldSatur="[]#0x",
