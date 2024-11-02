@@ -587,6 +587,7 @@ C. Gamepad
             bg_on="Normal BG",
             bg_off="No BG",
             bg_custom="Custom BG",
+            bg_custom_base64="Paste image as BG\n(PNG/JPG in Base64)",
             defaultBG="Default BG",
             resetDbg="Reset to default",
             lockBG="Lock BG",
@@ -622,6 +623,7 @@ C. Gamepad
 
             das="DAS",arr="ARR",
             dascut="DAS Cut",
+            irscut="IRS Cut",
             dropcut="Auto-lock Cut",
             sddas="Soft Drop DAS",sdarr="Soft Drop ARR",
             ihs="Initial Hold",

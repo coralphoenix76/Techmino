@@ -164,7 +164,7 @@ do-- function applySettings()
             BG.set()
             if SETTING.lockBG then
                 BG.lock()
-            elseif reason=='lockBG' then        -- Don't load theme too soon!
+            elseif reason=='lockBG' then -- We only reload theme again when at settings scene.
                 THEME.set(THEME.calculate(),GAME.playing)
             end
         elseif SETTING.bg=='off' then
@@ -975,7 +975,7 @@ end
 do-- function dumpBasicConfig()
     local gameSetting={
         -- Tuning
-        'das','arr','dascut','dropcut','sddas','sdarr',
+        'das','arr','dascut','irscut','dropcut','sddas','sdarr',
         'ihs','irs','ims','RS',
 
         -- System
@@ -1021,7 +1021,7 @@ do-- function resetGameData(args)
     end
     local gameSetting={
         -- Tuning
-        'das','arr','dascut','dropcut','sddas','sdarr',
+        'das','arr','dascut','irscut','dropcut','sddas','sdarr',
         'ihs','irs','ims','RS',
 
         -- System
@@ -1236,7 +1236,7 @@ do-- function pressKey(k)
 end
 do-- SETXXX(k) & ROOMXXX(k)
     local warnList={
-        'das','arr','dascut','dropcut','sddas','sdarr',
+        'das','arr','dascut','irscut','dropcut','sddas','sdarr',
         'ihs','irs','ims','RS',
         'frameMul','highCam',
         'VKSwitch','VKIcon','VKTrack','VKDodge',
